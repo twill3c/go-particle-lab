@@ -308,3 +308,19 @@ func TestBlackHole(t *testing.T) {
 		t.Fatalf("残った粒子が違う: X=%v", w.Particles[0].X)
 	}
 }
+
+// T-113 / F-08 §4.3: 井戸の Capture 内の粒子は速度が (1 − Damping·dt) 倍になる。Capture 外は減衰しない。
+// 井戸の引力自体は Strength=0 で切り、減衰だけを見る。
+func TestWellCaptureDamping(t *testing.T) {
+	w := newQuiet(1000, 1000)
+	w.Wells = []GravityWell{{X: 500, Y: 500, Strength: 0, Radius: 300, Capture: 50, Damping: 2}}
+	w.AddParticle(Particle{X: 520, Y: 500, VX: 100, Radius: 3, Mass: 1})
+	w.AddParticle(Particle{X: 700, Y: 500, VX: 100, Radius: 3, Mass: 1})
+	w.Step(0.1)
+	if p := w.Particles[0]; !approx(p.VX, 80) {
+		t.Fatalf("Capture 内: VX=%v (期待 80 = 100×(1−2×0.1))", p.VX)
+	}
+	if q := w.Particles[1]; !approx(q.VX, 100) {
+		t.Fatalf("Capture 外: VX=%v (期待 100)", q.VX)
+	}
+}

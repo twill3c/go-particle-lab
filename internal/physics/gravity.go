@@ -6,10 +6,13 @@ import "math"
 const WellMinDist = 20.0
 
 // GravityWell は固定の引力源(SPEC F-08)。Radius の外には効かない。
+// Capture 内の粒子は速度に減衰 Damping(1/s)を受けて井戸に落ち着き、井戸ごと運べる(SPEC §4.3)。
 type GravityWell struct {
 	X, Y     float64
 	Strength float64
 	Radius   float64
+	Capture  float64
+	Damping  float64
 }
 
 // BlackHole は井戸と同じ引力に加え、EventRadius 内の粒子を吸収する(SPEC F-11)。
@@ -41,11 +44,24 @@ func (w *World) applyForces(dt float64) {
 	for i := range w.Particles {
 		p := &w.Particles[i]
 		ax, ay := w.Wind, w.Gravity
+		damp := 1.0
 		for _, g := range w.Wells {
 			gx, gy := wellAccel(g.X, g.Y, g.Strength, g.Radius, p.X, p.Y)
 			ax += gx
 			ay += gy
+			if g.Capture > 0 {
+				dx, dy := g.X-p.X, g.Y-p.Y
+				if dx*dx+dy*dy < g.Capture*g.Capture {
+					f := 1 - g.Damping*dt
+					if f < 0 {
+						f = 0
+					}
+					damp *= f
+				}
+			}
 		}
+		p.VX *= damp
+		p.VY *= damp
 		if b := w.BlackHole; b != nil {
 			gx, gy := wellAccel(b.X, b.Y, b.Strength, b.Radius, p.X, p.Y)
 			ax += gx

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Go Particle Lab — Build gravity. Bend particles. Break physics.</title>
+  <meta name="description" content="Go で書いた物理エンジンを WebAssembly でブラウザ上に走らせる粒子ゲーム。重力井戸を置いて粒子を Goal へ導く。">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <header class="title">
+      <h1><span class="go">GO</span> PARTICLE LAB</h1>
+      <div class="tagline">Build gravity. Bend particles. Break physics. — 物理演算は Go / WebAssembly、描画は JavaScript</div>
+    </header>
+
+    <div class="hud">
+      <div class="cell"><div class="label">Score</div><div class="value" id="hud-score">0</div></div>
+      <div class="cell"><div class="label">Time</div><div class="value" id="hud-time">60.0<small>s</small></div></div>
+      <div class="cell"><div class="label">Goal</div><div class="value" id="hud-goal">0<small> / 100</small></div></div>
+      <div class="cell combo"><div class="label">Combo</div><div class="value" id="hud-combo">×1</div></div>
+    </div>
+
+    <div class="stage">
+      <canvas id="view" width="960" height="600"></canvas>
+      <div class="perf" id="perf">
+        <div><span class="k">FPS</span><span id="perf-fps">—</span></div>
+        <div><span class="k">Particles</span><span id="perf-n">—</span></div>
+        <div><span class="k">Physics</span><span id="perf-phys">—</span></div>
+        <div><span class="k">Render</span><span id="perf-render">—</span></div>
+      </div>
+      <div class="banner" id="banner" hidden>
+        <div class="big" id="banner-big"></div>
+        <div class="sub" id="banner-sub"></div>
+      </div>
+    </div>
+    <div class="hint" id="hint">左クリックで重力井戸を置く・ドラッグで粒子ごと運ぶ・右クリックで消す。Wasm を読み込み中…</div>
+
+    <div class="controls">
+      <label>Stage
+        <select id="stage"></select>
+      </label>
+      <label>Particles <input type="range" id="particles" min="100" max="2000" step="100" value="500"><span class="val" id="particles-val">500</span></label>
+      <label>Gravity <input type="range" id="gravity" min="0" max="800" step="10" value="300"><span class="val" id="gravity-val">300</span></label>
+      <label>Wind <input type="range" id="wind" min="-200" max="200" step="10" value="0"><span class="val" id="wind-val">0</span></label>
+      <label>Bounce <input type="range" id="bounce" min="0" max="1" step="0.05" value="0.6"><span class="val" id="bounce-val">0.60</span></label>
+      <div class="buttons">
+        <button id="pause">PAUSE</button>
+        <button id="reset" class="secondary">RESET</button>
+      </div>
+    </div>
+
+    <section class="lab">
+      <h2>LAB MODE — Physics Benchmark</h2>
+      <p>粒子数を変えて Go/Wasm の物理 1 ステップ(1/60 秒)に掛かる時間を実測する。各行 120 ステップの平均。数値はこのブラウザ・この端末の実測値。</p>
+      <table class="bench">
+        <thead><tr><th>Particles</th><th>Physics / step</th><th>Budget (16.7 ms)</th></tr></thead>
+        <tbody id="bench-body"></tbody>
+      </table>
+      <p style="margin-top:8px"><button id="bench-run">RUN BENCHMARK</button></p>
+    </section>
+
+    <section class="about">
+      <h2>WHAT RUNS WHERE</h2>
+      <p>Go(<code>internal/physics</code>・<code>internal/game</code>)が粒子の積分・壁と障害物・粒子同士の衝突(一様格子)・重力井戸・ブラックホール・Goal 判定・スコアを計算し、
+      <code>GOOS=js GOARCH=wasm</code> で <code>main.wasm</code> になる。JavaScript は毎フレーム <code>step(dt)</code> を呼び、Go が Float32Array に書いた座標を Canvas に描くだけで、運動則を一切持たない。</p>
+    </section>
+
+    <footer class="footer" id="footer">
+      <a href="https://github.com/twill3c/go-particle-lab/blob/main/LICENSE">MIT License</a> © 2026 坂田哲朗
+      <span class="fsep">・</span><a href="https://github.com/twill3c/go-particle-lab">GitHub</a>
+      <span class="fsep">・</span><a href="https://claude.ai/code/artifacts">go-particle-lab の遊び方</a>
+      <span class="fsep">・</span><a href="https://claude.ai/code/artifacts">go-particle-lab 設計図</a>
+      <span class="fsep">・</span><a href="https://app-menu-amber.vercel.app/">App Menu</a>
+    </footer>
+  </main>
+  <script src="wasm_exec.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

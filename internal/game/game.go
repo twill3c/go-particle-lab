@@ -26,9 +26,11 @@ const (
 	ParticleMass     = 1.0
 	MaxDt            = 1.0 / 20 // SPEC §4.1: Update の dt クランプ
 
-	// 井戸の既定値(クリックで置かれる)。
-	WellStrength = 2.0e6
-	WellRadius   = 320.0
+	// 井戸の既定値(クリックで置かれる)。SPEC §4.3。
+	WellStrength = 1.0e6 // 較正 2026-09-07: 1 往復で運べる粒子が約 80(0.8e6: 50 / 1.3e6: 125)
+	WellRadius   = 130.0 // 半径は運搬量にほとんど効かない(90〜160 で同等)
+	WellCapture  = 40.0  // この内側で速度が減衰し、粒子が井戸に落ち着く(井戸ごと運べる)
+	WellDamping  = 4.0   // 1/s
 
 	GoalWidth  = 60.0
 	GoalHeight = 160.0
@@ -197,7 +199,9 @@ func (g *Game) AddWell(x, y float64) bool {
 	if len(g.World.Wells) >= g.Stage.MaxWells {
 		return false
 	}
-	g.World.Wells = append(g.World.Wells, physics.GravityWell{X: x, Y: y, Strength: WellStrength, Radius: WellRadius})
+	g.World.Wells = append(g.World.Wells, physics.GravityWell{
+		X: x, Y: y, Strength: WellStrength, Radius: WellRadius, Capture: WellCapture, Damping: WellDamping,
+	})
 	return true
 }
 
