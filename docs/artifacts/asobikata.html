@@ -1,0 +1,135 @@
+<title>Go Particle Lab の遊び方</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #f5f7fb;
+    --surface: #ffffff;
+    --ink: #17202e;
+    --muted: #5c6b84;
+    --line: #d5dce8;
+    --accent: #0e7fb8;
+    --accent-soft: #e2f1fa;
+    --particle: #c98a00;
+    --goal: #1f8f4e;
+    --display: "Chakra Petch", "IBM Plex Sans JP", sans-serif;
+    --body: "IBM Plex Sans JP", "Hiragino Sans", "Noto Sans JP", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b0f17; --surface: #121a26; --ink: #dce6f5; --muted: #8a9bb8; --line: #22304a;
+      --accent: #5ad1ff; --accent-soft: #14283a; --particle: #ffd166; --goal: #4ade80;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b0f17; --surface: #121a26; --ink: #dce6f5; --muted: #8a9bb8; --line: #22304a;
+    --accent: #5ad1ff; --accent-soft: #14283a; --particle: #ffd166; --goal: #4ade80;
+  }
+  body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.75; margin: 0; }
+  main { max-width: 760px; margin: 0 auto; padding: 40px 20px 80px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-family: var(--display); font-size: 34px; line-height: 1.2; margin: 6px 0 4px; text-wrap: balance; letter-spacing: 0.02em; }
+  .lede { color: var(--muted); font-size: 16px; margin: 0 0 28px; max-width: 60ch; }
+  h2 { font-family: var(--display); font-size: 20px; margin: 40px 0 10px; letter-spacing: 0.03em; text-wrap: balance; }
+  p { max-width: 66ch; margin: 0 0 12px; }
+  ul { padding-left: 1.3em; margin: 0 0 12px; max-width: 66ch; }
+  li { margin-bottom: 4px; }
+  code { font-family: var(--mono); font-size: 0.92em; background: var(--accent-soft); padding: 1px 5px; border-radius: 3px; }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0 16px; font-size: 14px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+  td.num, th.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .tablewrap { overflow-x: auto; }
+  .steps { counter-reset: s; display: grid; gap: 10px; margin: 12px 0 16px; padding: 0; list-style: none; }
+  .steps li { display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; }
+  .steps li::before { counter-increment: s; content: counter(s); font-family: var(--display); font-size: 20px; color: var(--accent); line-height: 1.2; }
+  .steps b { display: block; margin-bottom: 2px; }
+  .note { border-left: 3px solid var(--particle); padding: 8px 14px; background: var(--surface); margin: 14px 0; max-width: 66ch; }
+  .keys { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin: 10px 0 16px; }
+  .key { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+  .key .k { font-family: var(--mono); font-size: 13px; color: var(--accent); }
+  .key .v { font-size: 14px; }
+  .sim { position: relative; height: 120px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; margin: 10px 0 18px; overflow: hidden; }
+  .sim .goalbox { position: absolute; right: 10px; top: 30px; width: 40px; height: 60px; border: 2px solid var(--goal); border-radius: 3px; }
+  .sim .well { position: absolute; left: 90px; top: 55px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 26px var(--accent-soft); }
+  .sim .dot { position: absolute; width: 5px; height: 5px; background: var(--particle); }
+  .sim .arrow { position: absolute; left: 150px; top: 58px; width: 480px; border-top: 2px dashed var(--muted); }
+  .sim .cap { position: absolute; left: 150px; top: 66px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+  a { color: var(--accent); }
+</style>
+<main>
+  <div class="eyebrow">Go Particle Lab</div>
+  <h1>Go Particle Lab の遊び方</h1>
+  <p class="lede">Go で書いた物理エンジンが WebAssembly としてブラウザで走り、500 個の粒子を毎フレーム計算している。あなたは重力井戸をひとつ置いて、粒子を右端の Goal まで運ぶ。</p>
+
+  <h2>60 秒で 100 個</h2>
+  <p>画面に 500 個の粒子が散らばる。制限時間は 60 秒。右端の緑の枠(Goal)に粒子の中心が入ると「到達」で、100 個に達したらクリア。井戸は左クリックで置き、ドラッグで動かし、右クリックで消す。それだけ。</p>
+
+  <div class="sim" aria-hidden="true">
+    <div class="dot" style="left:82px;top:72px"></div><div class="dot" style="left:96px;top:78px"></div><div class="dot" style="left:104px;top:70px"></div>
+    <div class="dot" style="left:88px;top:84px"></div><div class="dot" style="left:100px;top:88px"></div><div class="dot" style="left:110px;top:80px"></div>
+    <div class="dot" style="left:30px;top:106px"></div><div class="dot" style="left:44px;top:106px"></div><div class="dot" style="left:200px;top:106px"></div><div class="dot" style="left:260px;top:106px"></div><div class="dot" style="left:330px;top:106px"></div>
+    <div class="well"></div>
+    <div class="arrow"></div><div class="cap">井戸ごと、ゆっくり運ぶ</div>
+    <div class="goalbox"></div>
+  </div>
+
+  <h2>コツは「捕まえて、運ぶ」</h2>
+  <p>井戸は粒子を引き寄せるだけでなく、<b>中心の近くに入った粒子の速度を減衰させる</b>。だから粒子は井戸の周りに落ち着き、井戸をドラッグすると粒子の塊ごと動く。Goal の手前に井戸を置いて粒子が落ちてくるのを待つやり方は、重力のあるステージではほとんど届かない(作っている途中で自動プレイで測ったら 60 秒で 0〜15 個だった)。</p>
+  <ol class="steps">
+    <li><b>床に落ちた粒子の上に井戸を置く</b>数秒待つと、半径 130 px 以内の粒子が集まってくる。</li>
+    <li><b>ゆっくり Goal へドラッグする</b>速く動かすと粒子は追いつけずに落ちる。1 秒に 100〜150 px くらいが目安。</li>
+    <li><b>Goal の中で 1〜2 秒止まる</b>塊の中心が Goal に入った粒子から順に到達になる。</li>
+    <li><b>戻って 2 往復目</b>1 往復で運べるのはおよそ 80〜100 個。風のあるステージでは粒子が左の壁に寄っているので、取りに行く。</li>
+  </ol>
+  <div class="note">井戸の強さは 1 往復で 80 個前後になるように較正してある(強すぎると 1 往復で 300 個さらって 10 秒で終わる。弱すぎると床から持ち上がらない)。Gravity / Wind / Bounce のスライダーを動かすと、この釣り合いは崩れる。それも遊びのうち。</div>
+
+  <h2>操作</h2>
+  <div class="keys">
+    <div class="key"><div class="k">左クリック / タップ</div><div class="v">井戸を置く。上限に達していると何も起きない</div></div>
+    <div class="key"><div class="k">ドラッグ</div><div class="v">井戸を動かす(粒子がついてくる)</div></div>
+    <div class="key"><div class="k">右クリック</div><div class="v">井戸を消す</div></div>
+    <div class="key"><div class="k">Space / PAUSE</div><div class="v">一時停止・再開</div></div>
+    <div class="key"><div class="k">RESET</div><div class="v">同じ配置で最初から(同じ seed)</div></div>
+    <div class="key"><div class="k">Stage</div><div class="v">切り替えると Reset される</div></div>
+  </div>
+
+  <h2>ステージ</h2>
+  <div class="tablewrap"><table>
+    <tr><th>Stage</th><th>何が変わるか</th><th>井戸</th></tr>
+    <tr><td>1 Free Float</td><td>重力なし。粒子は動かない。井戸で捕まえに行く(井戸を置かなければ 60 秒で 0 個)</td><td class="num">1</td></tr>
+    <tr><td>2 Gravity</td><td>通常重力。粒子は床に落ちて並ぶ</td><td class="num">1</td></tr>
+    <tr><td>3 Obstacles</td><td>板 2 枚。ぶつけると粒子が散る</td><td class="num">1</td></tr>
+    <tr><td>4 Multi Well</td><td>井戸を 3 つ置ける。中継に使う</td><td class="num">3</td></tr>
+    <tr><td>5 Wind</td><td>左向きの風。Goal と逆向きに押される</td><td class="num">3</td></tr>
+    <tr><td>6 Moving Wall</td><td>板の 1 枚が往復する</td><td class="num">3</td></tr>
+    <tr><td>7 Black Hole</td><td>中央のブラックホールに落ちた粒子は消える。近づけない</td><td class="num">3</td></tr>
+  </table></div>
+
+  <h2>スコア</h2>
+  <ul>
+    <li>到達 1 個 = 10 点 × コンボ倍率</li>
+    <li>直前の到達から 1 秒以内に次が到達するとコンボが 1 つ上がる。倍率の上限は ×8</li>
+    <li>塊で運ぶと同じフレームに何十個も到達するので、コンボはすぐ上限に張り付く。Score の差は「何往復で終えたか」で出る</li>
+    <li>クリア時は残り秒 × 10 のタイムボーナス</li>
+  </ul>
+
+  <h2>右上の計器と Lab Mode</h2>
+  <p>右上に FPS・粒子数・Physics(Go/Wasm が 1 ステップに使った ms)・Render(Canvas 描画の ms)が出る。これは飾りではなく、このゲームの主題そのもの。粒子スライダーを 2,000 にすると Physics の数字がどう動くか見てほしい。</p>
+  <p>画面下の Lab Mode は 100 / 500 / 1,000 / 2,000 / 5,000 粒子でそれぞれ 120 ステップ回し、1 ステップの平均 ms を実測で表にする。数値は端末とブラウザで変わる。作った机(Windows・Chromium)ではこうだった:</p>
+  <div class="tablewrap"><table>
+    <tr><th class="num">粒子</th><th class="num">Physics / step</th><th class="num">16.7 ms の予算に対して</th></tr>
+    <tr><td class="num">100</td><td class="num">0.08 ms</td><td class="num">0%</td></tr>
+    <tr><td class="num">500</td><td class="num">0.14 ms</td><td class="num">1%</td></tr>
+    <tr><td class="num">1,000</td><td class="num">0.25 ms</td><td class="num">2%</td></tr>
+    <tr><td class="num">2,000</td><td class="num">0.63 ms</td><td class="num">4%</td></tr>
+    <tr><td class="num">5,000</td><td class="num">2.20 ms</td><td class="num">13%</td></tr>
+  </table></div>
+  <p>5,000 粒子でも物理は 1 フレームの 1 割強。粒子同士の衝突を総当たり(O(n²))でなく一様格子で調べているので、粒子数にほぼ比例して増える。先に苦しくなるのは 5,000 個の四角を描く Canvas のほう。</p>
+
+  <h2>何が Go で、何が JavaScript か</h2>
+  <p>粒子の積分・壁と障害物・粒子同士の衝突・井戸・ブラックホール・Goal 判定・スコア・制限時間は全部 Go(<code>internal/physics</code>・<code>internal/game</code>)で、<code>GOOS=js GOARCH=wasm</code> で <code>main.wasm</code> になる。JavaScript は毎フレーム <code>step(dt)</code> を呼び、Go が Float32Array に書いた座標を Canvas に描くだけ。JavaScript の側には運動則が 1 行もない(テストで <code>Math.sqrt</code> や <code>+= v * dt</code> が無いことを見ている)。</p>
+
+  <footer>Go Particle Lab — <a href="https://go-particle-lab.vercel.app/">go-particle-lab.vercel.app</a> ・ <a href="https://github.com/twill3c/go-particle-lab">GitHub</a> ・ MIT License © 2026 坂田哲朗</footer>
+</main>

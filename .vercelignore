@@ -1,0 +1,15 @@
+logs/
+harness/
+schema/
+internal/
+cmd/
+tests/
+docs/
+out/
+scripts/
+.wt/
+.scaffold/
+.github/
+*.md
+go.mod
+Makefile

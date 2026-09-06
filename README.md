@@ -2,6 +2,8 @@
 
 **Build gravity. Bend particles. Break physics.**
 
+**本番 https://go-particle-lab.vercel.app**
+
 ブラウザ上に数百〜数千の粒子を生成し、重力・壁との反発・粒子同士の衝突・風・重力井戸を
 リアルタイムに計算するゲーム。**物理演算はすべて Go で書き、WebAssembly としてブラウザで走る。**
 JavaScript は描画と入力だけを担い、粒子の運動則を一切知らない。
@@ -20,7 +22,7 @@ JavaScript は描画と入力だけを担い、粒子の運動則を一切知ら
 | L1 | 物理エンジン(積分・重力・風・壁・粒子衝突・一様格子・井戸・障害物・移動壁・ブラックホール) | 完了(2026-09-06)・テスト 12 件 |
 | L2 | ゲーム(配置・Goal・スコア・コンボ・制限時間・ステージ 1〜7・Pause/Reset) | 完了(2026-09-06)・テスト 10 件 |
 | L3 | Wasm ブリッジ・Canvas・HUD・FPS・Lab Mode・実ブラウザ検品・遊び方の較正 | 完了(2026-09-07) |
-| L4 | GitHub・Vercel・文書 | 未着手 |
+| L4 | GitHub・Vercel・解説アーティファクト・app-menu 掲載 | 完了(2026-09-07) |
 
 ## 遊び方
 
@@ -62,6 +64,11 @@ internal/bridge  Go → JS の状態 JSON の契約(キー名をテストで固�
 web/             index.html / app.js / style.css / wasm_exec.js / main.wasm
 tests/           足場の不変量
 ```
+
+## 解説
+
+- [遊び方](https://claude.ai/code/artifact/430c65ac-d8a6-46f9-b15e-d9bcec99f1b5)
+- [設計図](https://claude.ai/code/artifact/bcc09897-a79a-4c0b-9dc8-d9e37b427bcd) — 境界の引き方・6 つの品質ゲート・自動プレイで測って組み替えた遊び方
 
 ## ライセンス
 
