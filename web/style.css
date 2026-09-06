@@ -107,11 +107,14 @@ canvas#view {
   background: rgba(5, 7, 12, 0.55);
   pointer-events: none;
   font-family: var(--mono);
+  padding: 0 16px;
+  text-align: center;
 }
 /* [hidden] は UA スタイルと同特異度なので display 指定に負ける。著者側で打ち消す(kasane-kairo の教訓) */
 .banner[hidden] { display: none; }
-.banner .big { font-size: 40px; font-weight: 700; letter-spacing: 0.1em; }
-.banner .sub { color: var(--muted); font-size: 14px; }
+.banner .big { font-size: clamp(28px, 7vw, 40px); font-weight: 700; letter-spacing: 0.1em; }
+/* 狭い画面で 1 行に収まらないので折り返す(390px で切れていた) */
+.banner .sub { color: var(--muted); font-size: clamp(11px, 2.6vw, 14px); max-width: 100%; text-wrap: balance; }
 .banner.clear .big { color: var(--goal); }
 .banner.timeup .big { color: var(--danger); }
 .banner.paused .big { color: var(--accent); }

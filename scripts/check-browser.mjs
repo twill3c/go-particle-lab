@@ -8,7 +8,7 @@ import { extname, join } from "node:path";
 import { createRequire } from "node:module";
 
 const require = createRequire("C:/_ClaudeCode/gihitsu-kobo/node_modules/");
-const { chromium } = require("playwright");
+const { chromium, devices } = require("playwright");
 
 const args = process.argv.slice(2);
 const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
@@ -147,6 +147,45 @@ check(rows.length === 5 && rows.every((r) => /^\d+(\.\d+)? ms$/.test(r[1])), "5 
 await page.screenshot({ path: shot, fullPage: true });
 console.log("screenshot → " + shot);
 check(errors.length === 0, "ページエラー 0 件" + (errors.length ? ": " + errors.join(" / ") : ""));
+
+// 狭い画面(iPhone 13 相当 390px): 横スクロールが出ない・タッチで運べる・バナーがキャンバス内に収まる。
+// バナーのはみ出しは数値検査が全部緑のまま起きるので、実際の矩形で見る(2026-09-07)。
+const mctx = await browser.newContext({ ...devices["iPhone 13"] });
+const mp = await mctx.newPage();
+const merr = [];
+mp.on("pageerror", (e) => merr.push(String(e)));
+await mp.goto(url, { waitUntil: "load" });
+await mp.waitForFunction(() => typeof window.GoParticleLab === "object" && document.getElementById("perf-fps").textContent !== "—", null, { timeout: 30000 });
+await mp.waitForTimeout(3000);
+const doc = await mp.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));
+const mbox = await mp.locator("#view").boundingBox();
+const mp1 = { x: mbox.x + 528 * mbox.width / 960, y: mbox.y + 540 * mbox.height / 600 };
+const mp2 = { x: mbox.x + 930 * mbox.width / 960, y: mbox.y + 300 * mbox.height / 600 };
+await mp.evaluate(async ([ax, ay, bx, by]) => {
+  const c = document.getElementById("view");
+  const fire = (t, x, y) => {
+    const tp = new Touch({ identifier: 1, target: c, clientX: x, clientY: y });
+    c.dispatchEvent(new TouchEvent(t, { touches: t === "touchend" ? [] : [tp], changedTouches: [tp], bubbles: true, cancelable: true }));
+  };
+  fire("touchstart", ax, ay);
+  await new Promise((r) => setTimeout(r, 6000));
+  for (let i = 1; i <= 60; i++) { fire("touchmove", ax + (bx - ax) * i / 60, ay + (by - ay) * i / 60); await new Promise((r) => setTimeout(r, 70)); }
+  await new Promise((r) => setTimeout(r, 1500));
+  fire("touchend", bx, by);
+}, [mp1.x, mp1.y, mp2.x, mp2.y]);
+await mp.waitForTimeout(300);
+const ms = await mp.evaluate(() => JSON.parse(GoParticleLab.step(0, new Uint8Array(0))));
+const fit = await mp.evaluate(() => {
+  const s = document.getElementById("banner-sub"), c = document.getElementById("view");
+  const sr = s.getBoundingClientRect(), cr = c.getBoundingClientRect();
+  return { inside: sr.left >= cr.left - 1 && sr.right <= cr.right + 1, clipped: s.scrollWidth > s.clientWidth, text: s.textContent };
+});
+console.log("mobile", JSON.stringify({ doc, goaled: ms.goaled, status: ms.status, fit }));
+check(doc.sw <= doc.cw, "390px で横スクロールが出ない (" + doc.sw + " ≤ " + doc.cw + ")");
+check(ms.goaled >= 30, "タッチのドラッグで粒子を運べる(到達 " + ms.goaled + ")");
+check(fit.inside && !fit.clipped, "バナーがキャンバス内に収まり、切れていない: " + JSON.stringify(fit.text));
+await mp.screenshot({ path: shot.replace(/\.png$/, "-mobile.png"), fullPage: true });
+check(merr.length === 0, "モバイルのページエラー 0 件" + (merr.length ? ": " + merr.join(" / ") : ""));
 
 await browser.close();
 if (server) server.close();

@@ -86,6 +86,9 @@
 
 Go 側の `cmd/wasm` は `syscall/js` を使うためネイティブで `go test` できない。
 `GOOS=js GOARCH=wasm go build` が通ること(G-05)と、実ブラウザ検品で確かめる。
+実ブラウザ検品は `node scripts/check-browser.mjs [--url <本番>]`(Playwright はフリートの
+`gihitsu-kobo/node_modules` から借りる)。**バナーやラベルのはみ出しは状態を読む検査では緑のまま通る**ので、
+`getComputedStyle` と `getBoundingClientRect` の実測で見る(2026-09-07 に 2 度踏んだ)。
 
 | ID | 対応要求 | ケース | 期待 |
 |---|---|---|---|
@@ -95,3 +98,5 @@ Go 側の `cmd/wasm` は `syscall/js` を使うためネイティブで `go test
 | T-304 | F-43 | 実ブラウザ: クリック → 井戸が出る、右クリック → 消える | 状態 JSON の wells 長が 1 → 0 |
 | T-305 | F-45 | Lab Mode 実行 | 5 行の表に ms が入る(実測値・定数期待なし) |
 | T-306 | F-32 (HC-190) | 状態 JSON の契約: `bridge.Marshal` の全キーが小文字始まり、`app.js` が `s./w./o./g./b.` で読むキーがすべて存在する | 一致(入れ子の wells/obstacles/goal/blackHole を含む) |
+| T-307 | F-43, G-07 | 実ブラウザ: 井戸を床に置き 6 秒待って Goal へドラッグ、2 秒滞在 | 到達 30 個以上・得点が入る |
+| T-308 | F-40, F-43 | 狭い画面(iPhone 13 相当 390px): 横スクロール・タッチのドラッグ運搬・CLEAR バナーの矩形 | `scrollWidth ≤ clientWidth`・到達 30 個以上・バナーの副文がキャンバスの左右に収まり `scrollWidth ≤ clientWidth` |
