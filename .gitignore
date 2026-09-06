@@ -1,0 +1,7 @@
+/web/main.wasm.tmp
+*.exe
+/bin/
+node_modules/
+.vercel
+.DS_Store
+__pycache__/

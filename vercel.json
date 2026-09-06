@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": null,
+  "outputDirectory": "web",
+  "framework": null,
+  "headers": [
+    { "source": "/main.wasm", "headers": [ { "key": "Content-Type", "value": "application/wasm" } ] }
+  ]
+}
